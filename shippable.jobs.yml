@@ -1,0 +1,102 @@
+jobs:
+
+#RELEASE
+
+   - name: ar-release
+     type: release
+     steps:
+       - IN: ar-version
+         #versionName: testrelease
+       - IN: ar-inrunSh
+       - TASK: managed
+         bump: rc
+       #- IN: ar-tg3
+     flags:
+       - ar-release
+     on_start:
+       - NOTIFY: ar-email
+       - NOTIFY: ar-slack
+       #- NOTIFY: allpl-irc
+     on_success:
+       - NOTIFY: ar-email
+       - NOTIFY: ar-slack
+       #- NOTIFY: allpl-irc
+     on_failure:
+       - NOTIFY: ar-email
+       - NOTIFY: ar-slack
+      
+#MANIFESTS
+      
+   - name: ar-manifest1
+     type: manifest
+     steps:
+       - IN: ar-image1
+       # versionNumber: 100
+       - IN: ar-image2invalidimg
+       - OUT: ar-image4invalidformat
+       - IN: ar-tg1
+     on_start:
+       - NOTIFY: ar-email
+       - NOTIFY: ar-slack
+       #- NOTIFY: allpl-irc
+     on_success:
+       - NOTIFY: ar-email
+       - NOTIFY: ar-slack
+       #- NOTIFY: allpl-irc
+     on_failure:
+       - NOTIFY: ar-email
+       - NOTIFY: ar-slack
+       
+   - name: ar-manifest2
+     type: manifest
+     steps:
+       - IN: ar-image4invalidformat
+       - IN: ar-image1
+       - IN: ar-image2invalidimg
+  
+   - name: ar-ddcdeploy
+     type: deploy
+     steps:
+       - IN: ar-ddccluster
+       - IN: ar-manifest1
+         switch: off
+       - IN: ar-params
+       - IN: ar-dopts
+       - IN: ar-replica2
+        #versionNumber: 1000      
+     on_start:
+       - NOTIFY: ar-email
+       - NOTIFY: ar-slack
+       #- NOTIFY: allpl-irc
+     on_success:
+       - NOTIFY: ar-email
+       - NOTIFY: ar-slack
+       #- NOTIFY: allpl-irc
+     on_failure:
+       - NOTIFY: ar-email
+       - NOTIFY: ar-slack
+      
+   - name: ar-inrunSh
+     type: runSh
+     steps:
+       - IN: ar-samplescript
+      # versionName: testsha
+       - IN: ar-image3invalidtag
+      #- IN: test-time-1
+       - TASK:
+         - script: ls
+         - script: ./IN/ar-samplescript/gitRepo/echo.sh
+     on_start:
+       - NOTIFY: ar-slack
+       - NOTIFY: ar-email
+     on_success:
+       - NOTIFY: ar-slack
+       - NOTIFY: ar-email
+       - script: echo 'infra test'
+       - script: echo 'newtesting success'
+     on_failure:
+       - script: echo 'testing1 failure'
+       - script: echo 'failure runSh'
+       - NOTIFY: ar-slack
+       - NOTIFY: ar-email
+       
